@@ -44,14 +44,18 @@ export const DEFAULT_BODY_BACKGROUND = '#f1f5f9';
  * Blank starter shown when a template has no design yet. Deliberately minimal:
  * a preheader, one section, one text block. Anything more and users delete
  * more than they build.
+ *
+ * Every tag is closed explicitly. Self-closing MJML (`<mj-all … />`) is read by
+ * the HTML parser as an *open* tag, so everything that follows ends up nested
+ * inside it — silently, in the case of `mj-attributes`.
  */
 export const STARTER_MJML = `<mjml>
   <mj-head>
     <mj-preview></mj-preview>
     <mj-attributes>
-      <mj-all font-family="${DEFAULT_FONT}" />
-      <mj-text font-size="15px" line-height="1.5" color="${DEFAULT_TEXT_COLOR}" />
-      <mj-section padding="0px" />
+      <mj-all font-family="${DEFAULT_FONT}"></mj-all>
+      <mj-text font-size="15px" line-height="1.5" color="${DEFAULT_TEXT_COLOR}"></mj-text>
+      <mj-section padding="0px"></mj-section>
     </mj-attributes>
   </mj-head>
   <mj-body width="${BODY_WIDTH}" background-color="${DEFAULT_BODY_BACKGROUND}">

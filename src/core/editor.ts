@@ -126,6 +126,11 @@ export function createMailBuilder(options: MailBuilderOptions): MailBuilderInsta
                     blocks: BLOCKS,
                     fonts,
                     useCustomTheme: false,
+                    // Without it, self-closing MJML tags coming from an import
+                    // are parsed as open tags and swallow their siblings —
+                    // `<mj-divider />` followed by `<mj-text>` produces
+                    // "mj-text cannot be used inside mj-divider".
+                    useXmlParser: true,
                 }),
         ],
         ...grapesConfig,
