@@ -90,13 +90,20 @@ export const MailBuilder = defineComponent({
             getInstance: () => instance.value,
         });
 
+        // Two elements on purpose: GrapesJS overwrites the inline style of the
+        // element it mounts into with `height: 100%`. Sizing that same element
+        // would collapse it to zero, so the height lives on an outer wrapper
+        // the editor never touches.
         return () =>
-            h('div', {
-                ref: container,
-                style: {
-                    height: typeof props.height === 'number' ? `${props.height}px` : props.height,
+            h(
+                'div',
+                {
+                    style: {
+                        height: typeof props.height === 'number' ? `${props.height}px` : props.height,
+                    },
                 },
-            });
+                [h('div', { ref: container, style: { height: '100%' } })],
+            );
     },
 });
 

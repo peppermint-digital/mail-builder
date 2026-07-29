@@ -123,12 +123,14 @@ export const MailBuilder = forwardRef<MailBuilderHandle, MailBuilderProps>(funct
         [],
     );
 
+    // Two elements on purpose: GrapesJS overwrites the inline style of the
+    // element it mounts into with `height: 100%`. Sizing that same element
+    // would collapse it to zero, so the height lives on an outer wrapper the
+    // editor never touches.
     return (
-        <div
-            ref={containerRef}
-            className={className}
-            style={{ height: typeof height === 'number' ? `${height}px` : height }}
-        />
+        <div className={className} style={{ height: typeof height === 'number' ? `${height}px` : height }}>
+            <div ref={containerRef} style={{ height: '100%' }} />
+        </div>
     );
 });
 
