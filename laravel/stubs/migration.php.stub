@@ -1,0 +1,33 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use Peppermint\MailBuilder\Support\MailBuilderSchema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        // Purely additive and guarded, so re-running against a live table is a
+        // no-op rather than an error. Existing rows keep editor_mode = 'rich'.
+        if (Schema::hasColumn('{{ table }}', 'mjml_source')) {
+            return;
+        }
+
+        Schema::table('{{ table }}', function (Blueprint $table): void {
+            MailBuilderSchema::addColumns($table, '{{ after }}');
+        });
+    }
+
+    public function down(): void
+    {
+        if (! Schema::hasColumn('{{ table }}', 'mjml_source')) {
+            return;
+        }
+
+        Schema::table('{{ table }}', function (Blueprint $table): void {
+            MailBuilderSchema::dropColumns($table);
+        });
+    }
+};
