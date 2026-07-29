@@ -6,7 +6,9 @@ export {
     DEFAULT_BODY_BACKGROUND,
     DEFAULT_FONT,
     DEFAULT_TEXT_COLOR,
+    ensureHouseDefaults,
     FONT_STACKS,
+    HOUSE_ATTRIBUTES,
     STARTER_MJML,
 } from './theme';
 export { insertVariable, normalizeVariables, tokenFor } from './variables';

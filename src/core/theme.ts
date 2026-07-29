@@ -41,6 +41,39 @@ export const DEFAULT_TEXT_COLOR = '#334155';
 export const DEFAULT_BODY_BACKGROUND = '#f1f5f9';
 
 /**
+ * The house defaults every design must carry.
+ *
+ * GrapesJS does not round-trip `mj-attributes` — it parses the design into
+ * components and the head block is gone on the way back out. Without it MJML
+ * falls back to its own default font (Ubuntu) and injects a Google Fonts
+ * `<link>` plus an `@import`, both of which a majority of mail clients drop.
+ * That is a direct hit on the bulletproof standard, so the block is re-applied
+ * on every read (see `ensureHouseDefaults`).
+ */
+export const HOUSE_ATTRIBUTES =
+    '<mj-attributes>' +
+    `<mj-all font-family="${DEFAULT_FONT}"></mj-all>` +
+    `<mj-text font-size="15px" line-height="1.5" color="${DEFAULT_TEXT_COLOR}"></mj-text>` +
+    `<mj-button font-family="${DEFAULT_FONT}"></mj-button>` +
+    '</mj-attributes>';
+
+/**
+ * Guarantees the web-safe font block is present. Idempotent — a design that
+ * already declares its own `mj-attributes` is left alone.
+ */
+export function ensureHouseDefaults(mjml: string): string {
+    if (mjml.includes('<mj-attributes')) {
+        return mjml;
+    }
+
+    if (mjml.includes('<mj-head>')) {
+        return mjml.replace('<mj-head>', `<mj-head>${HOUSE_ATTRIBUTES}`);
+    }
+
+    return mjml.replace('<mj-body', `<mj-head>${HOUSE_ATTRIBUTES}</mj-head><mj-body`);
+}
+
+/**
  * Blank starter shown when a template has no design yet. Deliberately minimal:
  * a preheader, one section, one text block. Anything more and users delete
  * more than they build.

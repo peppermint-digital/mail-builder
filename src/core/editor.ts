@@ -2,7 +2,7 @@ import grapesjs from 'grapesjs';
 import mjmlPlugin from 'grapesjs-mjml';
 
 import { locales } from './i18n';
-import { BRAND_COLORS, FONT_STACKS, STARTER_MJML } from './theme';
+import { BRAND_COLORS, ensureHouseDefaults, FONT_STACKS, STARTER_MJML } from './theme';
 import type { MailBuilderHtml, MailBuilderInstance, MailBuilderOptions } from './types';
 import { insertVariable, normalizeVariables, registerVariablesRteAction } from './variables';
 
@@ -149,11 +149,17 @@ export function createMailBuilder(options: MailBuilderOptions): MailBuilderInsta
         editor,
 
         getMjml(): string {
-            return String(editor.Commands.run('mjml-code') ?? '');
+            // Normalised on the way out: GrapesJS drops the mj-head attributes
+            // block, so it has to be re-applied or every export loses its
+            // web-safe fonts.
+            return ensureHouseDefaults(String(editor.Commands.run('mjml-code') ?? ''));
         },
 
         getHtml(): MailBuilderHtml {
-            const result = editor.Commands.run('mjml-code-to-html') as MjmlCompileResult | undefined;
+            // Compile the normalised source, not the editor's raw output.
+            const result = editor.Commands.run('mjml-code-to-html', {
+                mjml: this.getMjml(),
+            }) as MjmlCompileResult | undefined;
 
             return {
                 html: result?.html ?? '',
