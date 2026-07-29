@@ -32,14 +32,16 @@ type MjmlPluginFn = (editor: unknown, options?: Record<string, unknown>) => void
  * ourselves does not.
  */
 function resolveMjmlPlugin(): MjmlPluginFn {
-    const candidate = mjmlPlugin as unknown as MjmlPluginFn & { default?: MjmlPluginFn };
+    const candidate: unknown = mjmlPlugin;
 
     if (typeof candidate === 'function') {
-        return candidate;
+        return candidate as MjmlPluginFn;
     }
 
-    if (typeof candidate?.default === 'function') {
-        return candidate.default;
+    const nested = (candidate as { default?: unknown } | null)?.default;
+
+    if (typeof nested === 'function') {
+        return nested as MjmlPluginFn;
     }
 
     throw new Error('grapesjs-mjml konnte nicht geladen werden.');
