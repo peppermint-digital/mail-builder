@@ -1,0 +1,38 @@
+{
+    "name": "peppermint/mail-builder",
+    "description": "Laravel-Seite des Peppermint Mail-Builders: Vorlagen-Speicherung (MJML + kompiliertes HTML), Platzhalter-Rendering, Bild-Upload und Installations-Command.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Peppermint Digital"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0",
+        "illuminate/database": "^11.0|^12.0",
+        "illuminate/http": "^11.0|^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0",
+        "laravel/pint": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Peppermint\\MailBuilder\\": "laravel/src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Peppermint\\MailBuilder\\MailBuilderServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
