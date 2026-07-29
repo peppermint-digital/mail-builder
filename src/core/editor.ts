@@ -179,10 +179,16 @@ export function createMailBuilder(options: MailBuilderOptions): MailBuilderInsta
         },
 
         destroy(): void {
+            delete (container as HTMLElement & { mailBuilder?: MailBuilderInstance }).mailBuilder;
             editor.destroy();
             container.classList.remove('pm-mail-builder', `pm-mail-builder--${theme}`);
         },
     };
+
+    // Handle on the mounted element. Host apps get the instance through
+    // onReady, but a DOM-reachable reference is what makes the editor
+    // debuggable from a console and drivable from an end-to-end test.
+    (container as HTMLElement & { mailBuilder?: MailBuilderInstance }).mailBuilder = instance;
 
     instance.loadMjml(mjml?.trim() ? mjml : STARTER_MJML);
 
