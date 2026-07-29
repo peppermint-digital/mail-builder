@@ -18,6 +18,18 @@ export default defineConfig([
         outDir: 'dist/core',
         treeshake: true,
     },
+    // Starters only — no GrapesJS. Lets a host app render the picker (and a
+    // check script validate the designs) without pulling in the editor bundle.
+    {
+        entry: { index: 'src/core/starters.ts' },
+        format: ['cjs', 'esm'],
+        dts: true,
+        splitting: false,
+        sourcemap: true,
+        clean: true,
+        outDir: 'dist/starters',
+        treeshake: true,
+    },
     // React wrapper
     {
         entry: { index: 'src/react/index.tsx' },
