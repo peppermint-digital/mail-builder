@@ -82,21 +82,27 @@ export function createMailBuilder(options: MailBuilderOptions): MailBuilderInsta
                   }
                 : undefined,
         },
-        plugins: [mjmlPlugin],
-        pluginsOpts: {
-            [mjmlPlugin as unknown as string]: {
-                blocks: BLOCKS,
-                fonts,
-                // Our own German strings live in i18n.ts and are merged below,
-                // which also covers GrapesJS core — one place instead of two.
-                useCustomTheme: false,
-            },
+        // Locale has to be part of the init config: GrapesJS renders its panels
+        // during init, so messages added afterwards arrive too late and the
+        // buttons keep their English titles.
+        i18n: {
+            locale: locale in locales ? locale : 'en',
+            messages: locales,
         },
+        // Options are passed by calling the plugin ourselves. `pluginsOpts`
+        // is keyed by plugin *name*; a function used as a key stringifies to
+        // its own source and never matches, so the options were silently
+        // dropped and the default block set showed up instead.
+        plugins: [
+            (instance) =>
+                mjmlPlugin(instance, {
+                    blocks: BLOCKS,
+                    fonts,
+                    useCustomTheme: false,
+                }),
+        ],
         ...grapesConfig,
     });
-
-    editor.I18n.addMessages(locales);
-    editor.I18n.setLocale(locale in locales ? locale : 'en');
 
     // Web-safe stacks only — see the bulletproof standard.
     const typography = editor.StyleManager.getSector('typography');
