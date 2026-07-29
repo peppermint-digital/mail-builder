@@ -111,6 +111,9 @@ export function createMailBuilder(options: MailBuilderOptions): MailBuilderInsta
         // buttons keep their English titles.
         i18n: {
             locale: locale in locales ? locale : 'en',
+            // GrapesJS sniffs navigator.language by default, which quietly
+            // overrode the locale we were asked for. The host app decides.
+            detectLocale: false,
             messages: locales,
         },
         // Options are passed by calling the plugin ourselves. `pluginsOpts`
