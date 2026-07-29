@@ -23,6 +23,28 @@ const BLOCKS = [
     'mj-raw',
 ];
 
+type MjmlPluginFn = (editor: unknown, options?: Record<string, unknown>) => void;
+
+/**
+ * `grapesjs-mjml` ships as UMD, so depending on who does the bundling the
+ * import is either the function itself or a namespace holding it under
+ * `default`. Passing the reference straight to GrapesJS hid this; calling it
+ * ourselves does not.
+ */
+function resolveMjmlPlugin(): MjmlPluginFn {
+    const candidate = mjmlPlugin as unknown as MjmlPluginFn & { default?: MjmlPluginFn };
+
+    if (typeof candidate === 'function') {
+        return candidate;
+    }
+
+    if (typeof candidate?.default === 'function') {
+        return candidate.default;
+    }
+
+    throw new Error('grapesjs-mjml konnte nicht geladen werden.');
+}
+
 type MjmlCompileResult = {
     html?: string;
     errors?: Array<{ line?: number; message?: string; formattedMessage?: string; tagName?: string }>;
@@ -95,7 +117,7 @@ export function createMailBuilder(options: MailBuilderOptions): MailBuilderInsta
         // dropped and the default block set showed up instead.
         plugins: [
             (instance) =>
-                mjmlPlugin(instance, {
+                resolveMjmlPlugin()(instance, {
                     blocks: BLOCKS,
                     fonts,
                     useCustomTheme: false,
