@@ -22,7 +22,11 @@ function splitIntoParagraphs(html: string): string[] {
     return normalised
         .split(/\n{2,}/)
         .map((part) => part.trim())
-        .filter((part) => part !== '' && part.replace(/<[^>]+>/g, '').trim() !== '');
+        .filter((part) => part !== '' && part.replace(/<[^>]+>/g, '').trim() !== '')
+        // Einzelne Zeilenumbrüche innerhalb eines Absatzes bleiben bedeutungstragend
+        // — Adressblöcke und Signaturen leben davon. HTML würde sie zu Leerzeichen
+        // zusammenfalten, deshalb hier explizit.
+        .map((part) => part.replace(/\n/g, '<br>'));
 }
 
 export interface ProseToMjmlOptions {
