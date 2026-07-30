@@ -4,6 +4,7 @@ namespace Peppermint\MailBuilder;
 
 use Illuminate\Support\ServiceProvider;
 use Peppermint\MailBuilder\Console\InstallCommand;
+use Peppermint\MailBuilder\Services\HtmlToText;
 use Peppermint\MailBuilder\Services\PlaceholderRenderer;
 
 class MailBuilderServiceProvider extends ServiceProvider
@@ -13,6 +14,7 @@ class MailBuilderServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/mail-builder.php', 'mail-builder');
 
         $this->app->singleton(PlaceholderRenderer::class);
+        $this->app->singleton(HtmlToText::class);
     }
 
     public function boot(): void
