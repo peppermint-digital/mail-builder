@@ -54,7 +54,11 @@ export const HOUSE_ATTRIBUTES =
     '<mj-attributes>' +
     `<mj-all font-family="${DEFAULT_FONT}"></mj-all>` +
     `<mj-text font-size="15px" line-height="1.5" color="${DEFAULT_TEXT_COLOR}"></mj-text>` +
-    `<mj-button font-family="${DEFAULT_FONT}"></mj-button>` +
+    // border-radius="0": MJML rundet Buttons per Default mit 3px ab. Regel 4 des
+    // Peppermint-Standards verbietet border-radius — Outlooks Word-Engine
+    // ignoriert es ohnehin, sodass die Ecken je Client unterschiedlich
+    // aussehen. Eckig ist überall gleich.
+    `<mj-button font-family="${DEFAULT_FONT}" border-radius="0"></mj-button>` +
     '</mj-attributes>';
 
 /**
