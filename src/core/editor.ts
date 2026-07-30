@@ -4,6 +4,7 @@ import mjmlPlugin from 'grapesjs-mjml';
 import { locales } from './i18n';
 import { BRAND_COLORS, ensureHouseDefaults, FONT_STACKS, STARTER_MJML } from './theme';
 import type { MailBuilderHtml, MailBuilderInstance, MailBuilderOptions } from './types';
+import { stripNoOpDeclarations } from './cleanup';
 import { extractPreheader, setPreheaderIn } from './preheader';
 import { insertVariable, normalizeVariables, registerVariablesRteAction } from './variables';
 
@@ -170,7 +171,7 @@ export function createMailBuilder(options: MailBuilderOptions): MailBuilderInsta
             }) as MjmlCompileResult | undefined;
 
             return {
-                html: result?.html ?? '',
+                html: stripNoOpDeclarations(result?.html ?? ''),
                 errors: (result?.errors ?? []).map((error) => ({
                     line: error.line,
                     tagName: error.tagName,
