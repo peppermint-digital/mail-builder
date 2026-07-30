@@ -33,6 +33,11 @@ export interface MailBuilderOptions {
     /** Initial MJML source. Falls back to a blank branded starter template. */
     mjml?: string;
     /**
+     * Vorschauzeile für die Nachrichtenliste des Postfachs. Überschreibt einen
+     * `mj-preview`-Knoten in `mjml`, falls beides gesetzt ist.
+     */
+    preheader?: string;
+    /**
      * Placeholders offered in the insert menu. Accepts either the rich array
      * form or a plain `{ key: label }` map (which is what the CRM's
      * `MailTemplate::STANDARD_VARIABLES` looks like).
@@ -73,6 +78,10 @@ export interface MailBuilderInstance {
     isEmpty(): boolean;
     /** Insert a `{{ token }}` at the current cursor position. */
     insertVariable(key: string): void;
+    /** Die aktuelle Vorschauzeile (Preheader). */
+    getPreheader(): string;
+    /** Setzt die Vorschauzeile. Wirkt beim nächsten Auslesen. */
+    setPreheader(text: string): void;
     /** Tear down the editor and free listeners. */
     destroy(): void;
     /** Underlying GrapesJS editor. Use sparingly. */

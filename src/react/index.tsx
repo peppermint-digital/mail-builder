@@ -17,6 +17,8 @@ export interface MailBuilderProps {
     value?: string;
     onChange?: (mjml: string) => void;
     variables?: MailBuilderVariable[] | Record<string, string>;
+    /** Vorschauzeile für die Nachrichtenliste des Postfachs. */
+    preheader?: string;
     onUploadImage?: (file: File) => Promise<string>;
     onReady?: (instance: MailBuilderInstance) => void;
     theme?: 'light' | 'dark';
@@ -31,6 +33,8 @@ export interface MailBuilderHandle {
     getHtml(): MailBuilderHtml;
     loadMjml(mjml: string): void;
     insertVariable(key: string): void;
+    getPreheader(): string;
+    setPreheader(text: string): void;
     isEmpty(): boolean;
     getInstance(): MailBuilderInstance | null;
 }
@@ -42,6 +46,7 @@ export const MailBuilder = forwardRef<MailBuilderHandle, MailBuilderProps>(funct
         variables,
         onUploadImage,
         onReady,
+        preheader,
         theme = 'light',
         locale = 'de',
         brandColors,
@@ -71,6 +76,7 @@ export const MailBuilder = forwardRef<MailBuilderHandle, MailBuilderProps>(funct
         const instance = createMailBuilder({
             container: containerRef.current,
             mjml: value,
+            preheader,
             variables,
             theme,
             locale,
@@ -117,6 +123,8 @@ export const MailBuilder = forwardRef<MailBuilderHandle, MailBuilderProps>(funct
             getHtml: () => instanceRef.current?.getHtml() ?? { html: '', errors: [] },
             loadMjml: (mjml: string) => instanceRef.current?.loadMjml(mjml),
             insertVariable: (key: string) => instanceRef.current?.insertVariable(key),
+            getPreheader: () => instanceRef.current?.getPreheader() ?? '',
+            setPreheader: (text: string) => instanceRef.current?.setPreheader(text),
             isEmpty: () => instanceRef.current?.isEmpty() ?? true,
             getInstance: () => instanceRef.current,
         }),

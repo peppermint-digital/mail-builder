@@ -4,6 +4,7 @@ import mjmlPlugin from 'grapesjs-mjml';
 import { locales } from './i18n';
 import { BRAND_COLORS, ensureHouseDefaults, FONT_STACKS, STARTER_MJML } from './theme';
 import type { MailBuilderHtml, MailBuilderInstance, MailBuilderOptions } from './types';
+import { extractPreheader, setPreheaderIn } from './preheader';
 import { insertVariable, normalizeVariables, registerVariablesRteAction } from './variables';
 
 /** Blocks we expose, in the order they appear in the sidebar. */
@@ -64,8 +65,13 @@ export function createMailBuilder(options: MailBuilderOptions): MailBuilderInsta
         brandColors = BRAND_COLORS,
         fonts = {},
         locale = 'de',
+        preheader,
         grapesConfig = {},
     } = options;
+
+    // Wird beim Laden aus der Quelle übernommen und beim Auslesen deterministisch
+    // zurückgeschrieben — so ist ein Feld im Host die einzige Wahrheit.
+    let preheaderText = preheader ?? '';
 
     const normalizedVariables = normalizeVariables(variables);
 
@@ -152,7 +158,9 @@ export function createMailBuilder(options: MailBuilderOptions): MailBuilderInsta
             // Normalised on the way out: GrapesJS drops the mj-head attributes
             // block, so it has to be re-applied or every export loses its
             // web-safe fonts.
-            return ensureHouseDefaults(String(editor.Commands.run('mjml-code') ?? ''));
+            const normalised = ensureHouseDefaults(String(editor.Commands.run('mjml-code') ?? ''));
+
+            return setPreheaderIn(normalised, preheaderText);
         },
 
         getHtml(): MailBuilderHtml {
@@ -171,12 +179,28 @@ export function createMailBuilder(options: MailBuilderOptions): MailBuilderInsta
             };
         },
 
+        getPreheader(): string {
+            return preheaderText;
+        },
+
+        setPreheader(text: string): void {
+            preheaderText = text;
+        },
+
         loadMjml(source: string): void {
             // Mirrors the plugin's own import command: clear the wrapper first,
             // otherwise the new design is appended to the old one.
             editor.Components.getWrapper()?.set('content', '');
             editor.setComponents(source.trim());
             editor.UndoManager.clear();
+
+            // Nur übernehmen, wenn die Quelle etwas mitbringt — ein explizit
+            // gesetzter Preheader soll nicht von einem leeren Knoten gelöscht
+            // werden.
+            const fromSource = extractPreheader(source);
+            if (fromSource !== '') {
+                preheaderText = fromSource;
+            }
         },
 
         isEmpty(): boolean {

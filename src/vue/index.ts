@@ -20,6 +20,7 @@ export const MailBuilder = defineComponent({
 
     props: {
         modelValue: { type: String, default: '' },
+        preheader: { type: String, default: undefined },
         variables: {
             type: [Array, Object] as PropType<MailBuilderVariable[] | Record<string, string>>,
             default: () => ({}),
@@ -50,6 +51,7 @@ export const MailBuilder = defineComponent({
             instance.value = createMailBuilder({
                 container: container.value,
                 mjml: props.modelValue,
+                preheader: props.preheader,
                 variables: props.variables,
                 theme: props.theme,
                 locale: props.locale,
@@ -86,6 +88,8 @@ export const MailBuilder = defineComponent({
             getHtml: () => instance.value?.getHtml() ?? { html: '', errors: [] },
             loadMjml: (mjml: string) => instance.value?.loadMjml(mjml),
             insertVariable: (key: string) => instance.value?.insertVariable(key),
+            getPreheader: () => instance.value?.getPreheader() ?? '',
+            setPreheader: (text: string) => instance.value?.setPreheader(text),
             isEmpty: () => instance.value?.isEmpty() ?? true,
             getInstance: () => instance.value,
         });
