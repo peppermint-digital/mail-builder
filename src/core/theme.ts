@@ -50,31 +50,55 @@ export const DEFAULT_BODY_BACKGROUND = '#f1f5f9';
  * That is a direct hit on the bulletproof standard, so the block is re-applied
  * on every read (see `ensureHouseDefaults`).
  */
-export const HOUSE_ATTRIBUTES =
-    '<mj-attributes>' +
-    `<mj-all font-family="${DEFAULT_FONT}"></mj-all>` +
-    `<mj-text font-size="15px" line-height="1.5" color="${DEFAULT_TEXT_COLOR}"></mj-text>` +
+/**
+ * Die Hausregeln, einzeln nach Tag. Einzeln, weil ein Design nachträglich um
+ * eine fehlende Regel ergänzt werden muss — siehe `ensureHouseDefaults`.
+ */
+export const HOUSE_RULES: ReadonlyArray<readonly [tag: string, rule: string]> = [
+    ['mj-all', `<mj-all font-family="${DEFAULT_FONT}"></mj-all>`],
+    ['mj-text', `<mj-text font-size="15px" line-height="1.5" color="${DEFAULT_TEXT_COLOR}"></mj-text>`],
     // border-radius="0": MJML rundet Buttons per Default mit 3px ab. Regel 4 des
     // Peppermint-Standards verbietet border-radius — Outlooks Word-Engine
     // ignoriert es ohnehin, sodass die Ecken je Client unterschiedlich
     // aussehen. Eckig ist überall gleich.
-    `<mj-button font-family="${DEFAULT_FONT}" border-radius="0"></mj-button>` +
-    '</mj-attributes>';
+    ['mj-button', `<mj-button font-family="${DEFAULT_FONT}" border-radius="0"></mj-button>`],
+];
+
+export const HOUSE_ATTRIBUTES = `<mj-attributes>${HOUSE_RULES.map(([, rule]) => rule).join('')}</mj-attributes>`;
+
+const ATTRIBUTES_BLOCK = /<mj-attributes\b[^>]*>([\s\S]*?)<\/mj-attributes>/i;
 
 /**
- * Guarantees the web-safe font block is present. Idempotent — a design that
- * already declares its own `mj-attributes` is left alone.
+ * Stellt sicher, dass jede Hausregel im Design steht.
+ *
+ * Prüft **jede Regel einzeln**, nicht nur die Existenz des Blocks. Sonst würde
+ * ein Design, das schon irgendein `mj-attributes` mitbringt, nie eine später
+ * hinzugefügte Hausregel bekommen — genau das war der Fall, als
+ * `border-radius="0"` dazukam und Bestandsvorlagen weiter runde Buttons
+ * exportierten.
+ *
+ * Bestehende eigene Angaben bleiben unangetastet: eine Regel wird nur ergänzt,
+ * wenn ihr Tag im Block fehlt.
  */
 export function ensureHouseDefaults(mjml: string): string {
-    if (mjml.includes('<mj-attributes')) {
+    const block = ATTRIBUTES_BLOCK.exec(mjml);
+
+    if (block === null) {
+        return mjml.includes('<mj-head>')
+            ? mjml.replace('<mj-head>', `<mj-head>${HOUSE_ATTRIBUTES}`)
+            : mjml.replace('<mj-body', `<mj-head>${HOUSE_ATTRIBUTES}</mj-head><mj-body`);
+    }
+
+    const inhalt = block[1];
+    const fehlend = HOUSE_RULES.filter(([tag]) => ! new RegExp(`<${tag}\\b`, 'i').test(inhalt))
+        .map(([, rule]) => rule)
+        .join('');
+
+    if (fehlend === '') {
         return mjml;
     }
 
-    if (mjml.includes('<mj-head>')) {
-        return mjml.replace('<mj-head>', `<mj-head>${HOUSE_ATTRIBUTES}`);
-    }
-
-    return mjml.replace('<mj-body', `<mj-head>${HOUSE_ATTRIBUTES}</mj-head><mj-body`);
+    return mjml.replace(block[0], `<mj-attributes>${fehlend}${inhalt}</mj-attributes>`);
 }
 
 /**

@@ -1,6 +1,6 @@
 {
   "name": "@peppermint-digital/mail-builder",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A drag & drop email template builder for React and Vue, built on GrapesJS and MJML. Produces bulletproof, Outlook-safe HTML.",
   "exports": {
     "./core": {
@@ -35,7 +35,7 @@
     "typecheck": "tsc --noEmit",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build",
-    "check": "node scripts/check-starters.mjs && node scripts/check-preheader.mjs"
+    "check": "node scripts/check-starters.mjs && node scripts/check-preheader.mjs && node scripts/check-house-defaults.mjs"
   },
   "dependencies": {
     "grapesjs": "^0.23.3",
