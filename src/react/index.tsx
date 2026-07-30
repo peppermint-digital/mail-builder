@@ -23,6 +23,8 @@ export interface MailBuilderProps {
     onReady?: (instance: MailBuilderInstance) => void;
     theme?: 'light' | 'dark';
     locale?: string;
+    /** GrapesJS' eingebauten Vorschau-Knopf entfernen — siehe Core-Doku. */
+    hideBuiltInPreview?: boolean;
     brandColors?: string[];
     height?: string | number;
     className?: string;
@@ -49,6 +51,7 @@ export const MailBuilder = forwardRef<MailBuilderHandle, MailBuilderProps>(funct
         preheader,
         theme = 'light',
         locale = 'de',
+        hideBuiltInPreview = false,
         brandColors,
         height = '70vh',
         className,
@@ -80,6 +83,7 @@ export const MailBuilder = forwardRef<MailBuilderHandle, MailBuilderProps>(funct
             variables,
             theme,
             locale,
+            hideBuiltInPreview,
             brandColors,
             onUploadImage: (file) => {
                 const handler = onUploadImageRef.current;

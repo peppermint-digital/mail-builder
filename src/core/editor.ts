@@ -66,6 +66,7 @@ export function createMailBuilder(options: MailBuilderOptions): MailBuilderInsta
         brandColors = BRAND_COLORS,
         fonts = {},
         locale = 'de',
+        hideBuiltInPreview = false,
         preheader,
         grapesConfig = {},
     } = options;
@@ -86,6 +87,31 @@ export function createMailBuilder(options: MailBuilderOptions): MailBuilderInsta
         // The host app owns persistence — we hand it MJML and it decides.
         storageManager: false,
         undoManager: { trackSelection: false },
+        // Im Canvas wird die Vorschauzeile als normaler Block gerendert, damit
+        // sie bearbeitbar ist — in der fertigen Mail ist sie versteckt. Ohne
+        // Kennzeichnung sieht das wie ein Unterschied zwischen Editor und
+        // Ergebnis aus. Deshalb hier sichtbar als das markieren, was sie ist.
+        canvasCss: `
+            [data-gjs-type="mj-preview"] {
+                position: relative;
+                border: 1px dashed #94a3b8 !important;
+                background: repeating-linear-gradient(45deg, #f8fafc, #f8fafc 6px, #eef2f6 6px, #eef2f6 12px) !important;
+                color: #64748b !important;
+                font-size: 12px !important;
+                padding: 10px 10px 10px 96px !important;
+            }
+            [data-gjs-type="mj-preview"]::before {
+                content: 'Vorschauzeile';
+                position: absolute;
+                left: 8px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 9px;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                color: #94a3b8;
+            }
+        `,
         colorPicker: { palette: [brandColors] },
         assetManager: {
             // Custom handler below; GrapesJS' own upload endpoint stays off.
@@ -148,6 +174,10 @@ export function createMailBuilder(options: MailBuilderOptions): MailBuilderInsta
     const fontProperty = typography?.getProperty('font-family');
     if (fontProperty) {
         fontProperty.set('options', FONT_STACKS);
+    }
+
+    if (hideBuiltInPreview) {
+        editor.Panels.removeButton('options', 'preview');
     }
 
     registerVariablesRteAction(editor, normalizedVariables);

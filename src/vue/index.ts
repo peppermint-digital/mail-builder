@@ -31,6 +31,7 @@ export const MailBuilder = defineComponent({
         },
         theme: { type: String as PropType<'light' | 'dark'>, default: 'light' },
         locale: { type: String, default: 'de' },
+        hideBuiltInPreview: { type: Boolean, default: false },
         brandColors: { type: Array as PropType<string[]>, default: undefined },
         height: { type: [String, Number], default: '70vh' },
     },
@@ -55,6 +56,7 @@ export const MailBuilder = defineComponent({
                 variables: props.variables,
                 theme: props.theme,
                 locale: props.locale,
+                hideBuiltInPreview: props.hideBuiltInPreview,
                 brandColors: props.brandColors,
                 onUploadImage: props.onUploadImage,
                 onChange: ({ mjml }) => {

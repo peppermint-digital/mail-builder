@@ -63,6 +63,16 @@ export interface MailBuilderOptions {
     fonts?: Record<string, string>;
     /** BCP-47-ish locale key. Only `de` and `en` ship with translations. */
     locale?: string;
+    /**
+     * Entfernt GrapesJS' eingebauten Vorschau-Knopf (das Auge).
+     *
+     * Sinnvoll, wenn die Host-Anwendung eine eigene Vorschau anbietet: die
+     * eingebaute zeigt den Canvas ohne Bedienelemente — also mit rohen
+     * Platzhaltern und in Canvas-Darstellung, nicht das kompilierte Ergebnis.
+     * Zwei Vorschauen mit unterschiedlicher Wahrheit verwirren mehr als sie
+     * helfen.
+     */
+    hideBuiltInPreview?: boolean;
     /** Extra GrapesJS config merged over the defaults. Escape hatch. */
     grapesConfig?: Record<string, unknown>;
 }
