@@ -27,6 +27,33 @@ const NO_OP_DECLARATIONS = /\s*border-radius\s*:\s*0(?:px|%|em|rem)?\s*;?/gi;
  */
 const WORD_BREAK = /word-break\s*:\s*break-word/gi;
 
+/**
+ * Die Vorschauzeile, die MJML aus `<mj-preview>` erzeugt, versteckt sich mit
+ * sieben Eigenschaften gleichzeitig:
+ *
+ *   display:none; font-size:1px; color:…; line-height:1px;
+ *   max-height:0px; max-width:0px; opacity:0; overflow:hidden;
+ *
+ * `display:none` verbirgt sie; `max-height:0` und `overflow:hidden` sind die
+ * Rückfallebene für Programme, die `display:none` ignorieren. `opacity:0` und
+ * `max-width:0` tragen darüber hinaus nichts bei — ein Element ohne Höhe und
+ * mit verstecktem Überlauf ist bereits unsichtbar.
+ *
+ * `opacity` wird von 37 % der Mailprogramme nicht unterstützt und ist damit
+ * der größte einzelne Posten im caniemail-Check. Gemessen an einer echten
+ * Belegmail: 85,3 % → 89,6 %.
+ *
+ * Bewusst doppelt eng gefasst: nur innerhalb eines `style`-Attributs, das
+ * selbst `display:none` enthält, und nur bei exakt dem Wert null. Ein
+ * `opacity:0` an anderer Stelle könnte Absicht sein — hier verbirgt schon
+ * `display:none`, es ist also nachweislich wirkungslos.
+ */
+const VERSTECKTES_ELEMENT = /style="([^"]*display\s*:\s*none[^"]*)"/gi;
+const UEBERFLUESSIGES_VERSTECKEN = /\s*(?:opacity\s*:\s*0(?:\.0+)?|max-width\s*:\s*0(?:px|%)?)\s*;/gi;
+
 export function stripNoOpDeclarations(html: string): string {
-    return html.replace(NO_OP_DECLARATIONS, '').replace(WORD_BREAK, 'word-wrap:break-word');
+    return html
+        .replace(NO_OP_DECLARATIONS, '')
+        .replace(WORD_BREAK, 'word-wrap:break-word')
+        .replace(VERSTECKTES_ELEMENT, (_treffer, stile: string) => `style="${stile.replace(UEBERFLUESSIGES_VERSTECKEN, '')}"`);
 }
