@@ -69,16 +69,18 @@ export const HOUSE_ATTRIBUTES = `<mj-attributes>${HOUSE_RULES.map(([, rule]) => 
 const ATTRIBUTES_BLOCK = /<mj-attributes\b[^>]*>([\s\S]*?)<\/mj-attributes>/i;
 
 /**
- * Stellt sicher, dass jede Hausregel im Design steht.
+ * Stellt sicher, dass die Hausregeln im Design stehen — in ihrer **aktuellen**
+ * Fassung.
  *
- * Prüft **jede Regel einzeln**, nicht nur die Existenz des Blocks. Sonst würde
- * ein Design, das schon irgendein `mj-attributes` mitbringt, nie eine später
- * hinzugefügte Hausregel bekommen — genau das war der Fall, als
- * `border-radius="0"` dazukam und Bestandsvorlagen weiter runde Buttons
- * exportierten.
+ * Jede Regel wird ersetzt, wenn ihr Tag schon im Block steht, und sonst
+ * ergänzt. Nur auf Existenz zu prüfen reicht nicht: Bestandsdesigns trugen
+ * bereits ein `<mj-button font-family="…">` aus einer früheren Fassung, und ein
+ * später hinzugefügtes `border-radius="0"` wäre nie angekommen. Genau daran ist
+ * dieser Code zweimal gescheitert.
  *
- * Bestehende eigene Angaben bleiben unangetastet: eine Regel wird nur ergänzt,
- * wenn ihr Tag im Block fehlt.
+ * Der Block gehört uns — es gibt keine Oberfläche, in der jemand
+ * `mj-attributes` von Hand pflegt. Deshalb dürfen unsere Regeln gewinnen.
+ * Fremde Regeln mit anderen Tags bleiben erhalten.
  */
 export function ensureHouseDefaults(mjml: string): string {
     const block = ATTRIBUTES_BLOCK.exec(mjml);
@@ -89,16 +91,15 @@ export function ensureHouseDefaults(mjml: string): string {
             : mjml.replace('<mj-body', `<mj-head>${HOUSE_ATTRIBUTES}</mj-head><mj-body`);
     }
 
-    const inhalt = block[1];
-    const fehlend = HOUSE_RULES.filter(([tag]) => ! new RegExp(`<${tag}\\b`, 'i').test(inhalt))
-        .map(([, rule]) => rule)
-        .join('');
+    let inhalt = block[1];
 
-    if (fehlend === '') {
-        return mjml;
+    for (const [tag, rule] of HOUSE_RULES) {
+        const vorhanden = new RegExp(`<${tag}\\b[^>]*>(?:[\\s\\S]*?</${tag}>)?`, 'i');
+
+        inhalt = vorhanden.test(inhalt) ? inhalt.replace(vorhanden, rule) : rule + inhalt;
     }
 
-    return mjml.replace(block[0], `<mj-attributes>${fehlend}${inhalt}</mj-attributes>`);
+    return mjml.replace(block[0], `<mj-attributes>${inhalt}</mj-attributes>`);
 }
 
 /**
