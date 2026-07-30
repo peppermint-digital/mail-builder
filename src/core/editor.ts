@@ -92,7 +92,8 @@ export function createMailBuilder(options: MailBuilderOptions): MailBuilderInsta
         // Kennzeichnung sieht das wie ein Unterschied zwischen Editor und
         // Ergebnis aus. Deshalb hier sichtbar als das markieren, was sie ist.
         canvasCss: `
-            [data-gjs-type="mj-preview"] {
+            mj-preview {
+                display: block;
                 position: relative;
                 border: 1px dashed #94a3b8 !important;
                 background: repeating-linear-gradient(45deg, #f8fafc, #f8fafc 6px, #eef2f6 6px, #eef2f6 12px) !important;
@@ -100,7 +101,7 @@ export function createMailBuilder(options: MailBuilderOptions): MailBuilderInsta
                 font-size: 12px !important;
                 padding: 10px 10px 10px 96px !important;
             }
-            [data-gjs-type="mj-preview"]::before {
+            mj-preview::before {
                 content: 'Vorschauzeile';
                 position: absolute;
                 left: 8px;
