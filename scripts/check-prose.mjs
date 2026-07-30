@@ -15,8 +15,11 @@ pruefe('bleibt bei leerer Eingabe gueltig', mjmlFromProse('').includes('<mj-body
 pruefe('600px Breite', drei.includes('width="600px"'));
 
 // Der KI-Channel liefert Plaintext mit \n — einzelne Umbrueche muessen erhalten bleiben
-pruefe('einzelner Umbruch wird zu br', mjmlFromProse('Zeile A\nZeile B').includes('Zeile A<br>Zeile B'));
+pruefe('einzelner Umbruch wird zu br', mjmlFromProse('Zeile A\nZeile B').includes('Zeile A<br />Zeile B'));
+// MJML wird als XML geparst: ein offenes <br> bricht das Dokument ab und der
+// Baukasten zeigt statt der Vorlage einen Parserfehler (CRM, 2026-07-30).
+pruefe('kein offenes br im Ergebnis', !/<br\s*>/.test(mjmlFromProse('A\nB\nC')));
 pruefe('doppelter Umbruch bleibt Absatzgrenze', (mjmlFromProse('A\n\nB').match(/<mj-text>/g) || []).length === 2);
 
 if (fehler > 0) { console.error(`\n${fehler} Problem(e).`); process.exit(1); }
-console.log('✓ Prosa-Umwandlung in Ordnung (11 Pruefungen)');
+console.log('✓ Prosa-Umwandlung in Ordnung (12 Pruefungen)');

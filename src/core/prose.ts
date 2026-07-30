@@ -26,7 +26,12 @@ function splitIntoParagraphs(html: string): string[] {
         // Einzelne Zeilenumbrüche innerhalb eines Absatzes bleiben bedeutungstragend
         // — Adressblöcke und Signaturen leben davon. HTML würde sie zu Leerzeichen
         // zusammenfalten, deshalb hier explizit.
-        .map((part) => part.replace(/\n/g, '<br>'));
+        //
+        // Selbstschließend, nicht `<br>`: MJML wird als XML geparst. Ein offenes
+        // `<br>` bricht das Dokument an Ort und Stelle ab — der Baukasten zeigte
+        // statt der Vorlage „Opening and ending tag mismatch: br and mj-text"
+        // (aufgefallen im CRM, 2026-07-30, bei jedem KI-Vorschlag aus Prosa).
+        .map((part) => part.replace(/\n/g, '<br />'));
 }
 
 export interface ProseToMjmlOptions {
