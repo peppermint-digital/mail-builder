@@ -22,15 +22,31 @@ class MailBuilderSchema
     public const MODES = [self::MODE_RICH, self::MODE_BUILDER];
 
     /**
-     * Adds the builder columns to an existing template table.
+     * Adds the builder columns to a template table.
      *
      * `editor_mode` defaults to `rich`, so every pre-existing row keeps its
      * current editor and nothing needs backfilling.
+     *
+     * Beim Nachrüsten einer bestehenden Tabelle bleibt `$after` stehen; beim
+     * Anlegen einer **neuen** Tabelle muss `null` übergeben werden — siehe
+     * Begründung im Rumpf.
      */
-    public static function addColumns(Blueprint $table, string $after = 'body'): void
+    public static function addColumns(Blueprint $table, ?string $after = 'body'): void
     {
-        $table->longText('mjml_source')->nullable()->after($after);
-        $table->string('editor_mode', 16)->default(self::MODE_RICH)->after('mjml_source');
+        $mjml = $table->longText('mjml_source')->nullable();
+        $mode = $table->string('editor_mode', 16)->default(self::MODE_RICH);
+
+        // `null` beim Anlegen einer neuen Tabelle übergeben.
+        //
+        // MySQL kennt `AFTER` nur in `ALTER TABLE`. Laravels Grammatik hängt den
+        // Modifier aber bedingungslos an, auch in einem `CREATE TABLE` — das
+        // ergibt dort einen Syntaxfehler. SQLite ignoriert `after` komplett,
+        // weshalb es auf einer SQLite-Entwicklungsdatenbank samt Tests
+        // unauffällig durchläuft und erst beim Deploy auf MySQL auffällt.
+        if ($after !== null) {
+            $mjml->after($after);
+            $mode->after('mjml_source');
+        }
     }
 
     /**
