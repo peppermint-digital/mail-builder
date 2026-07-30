@@ -119,3 +119,5 @@ export const DEFAULT_STARTER_ID = 'plain-message';
 export { extractPreheader, setPreheaderIn } from './preheader';
 export { ensureHouseDefaults, HOUSE_ATTRIBUTES, HOUSE_RULES } from './theme';
 export { stripNoOpDeclarations } from './cleanup';
+export { mjmlFromProse } from './prose';
+export type { ProseToMjmlOptions } from './prose';

@@ -12,6 +12,8 @@ export {
     STARTER_MJML,
 } from './theme';
 export { extractPreheader, setPreheaderIn } from './preheader';
+export { mjmlFromProse } from './prose';
+export type { ProseToMjmlOptions } from './prose';
 export { DEFAULT_STARTER_ID, findStarter, STARTERS } from './starters';
 export type { MailBuilderStarter } from './starters';
 export { insertVariable, normalizeVariables, tokenFor } from './variables';
