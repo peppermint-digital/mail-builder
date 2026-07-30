@@ -1,6 +1,6 @@
 {
   "name": "@peppermint-digital/mail-builder",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "A drag & drop email template builder for React and Vue, built on GrapesJS and MJML. Produces bulletproof, Outlook-safe HTML.",
   "exports": {
     "./core": {

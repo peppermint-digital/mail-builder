@@ -10,30 +10,54 @@
  * `mj-attributes` übersteht der Knoten den GrapesJS-Rundlauf, wird hier aber
  * beim Auslesen ohnehin deterministisch neu geschrieben.
  */
-const PREVIEW_PATTERN = /<mj-preview\b[^>]*>([\s\S]*?)<\/mj-preview>/i;
+/**
+ * Erfasst beide Schreibweisen: `<mj-preview>Text</mj-preview>` und die
+ * selbstschließende `<mj-preview/>`.
+ *
+ * GrapesJS serialisiert einen leeren Knoten selbstschließend. Ein Muster, das
+ * nur die Paarform kennt, findet ihn dann nicht — `setPreheaderIn` legt einen
+ * zweiten an, und **MJML nimmt den letzten**. Ergebnis: eine Mail ganz ohne
+ * Vorschauzeile, obwohl im Formular eine steht. Genau so ist es passiert.
+ */
+const PREVIEW_PATTERN = /<mj-preview\b[^>]*(?:\/>|>([\s\S]*?)<\/mj-preview>)/i;
+const PREVIEW_PATTERN_ALL = new RegExp(PREVIEW_PATTERN.source, 'gi');
 
 /** Liest den Preheader aus einer MJML-Quelle. Leerer String, wenn keiner da ist. */
 export function extractPreheader(mjml: string): string {
-    return PREVIEW_PATTERN.exec(mjml)?.[1]?.trim() ?? '';
+    // Den letzten nicht-leeren Knoten nehmen: MJML wertet ebenfalls den letzten
+    // aus, und in einem beschädigten Dokument steht der gefüllte womöglich
+    // vor einem leeren.
+    let gefunden = '';
+
+    for (const treffer of mjml.matchAll(PREVIEW_PATTERN_ALL)) {
+        const inhalt = treffer[1]?.trim() ?? '';
+
+        if (inhalt !== '') {
+            gefunden = inhalt;
+        }
+    }
+
+    return gefunden;
 }
 
 /**
  * Schreibt den Preheader in eine MJML-Quelle.
  *
- * Fehlt der `mj-preview`-Knoten, wird er im Kopfbereich angelegt; fehlt auch
- * der Kopfbereich, entsteht er mit.
+ * Entfernt **alle** vorhandenen `mj-preview`-Knoten und setzt genau einen neu.
+ * Das repariert nebenbei Dokumente, in denen durch den Fehler oben schon zwei
+ * gelandet sind.
+ *
+ * Fehlt der Kopfbereich, entsteht er mit.
  */
 export function setPreheaderIn(mjml: string, text: string): string {
     const escaped = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const node = `<mj-preview>${escaped}</mj-preview>`;
 
-    if (PREVIEW_PATTERN.test(mjml)) {
-        return mjml.replace(PREVIEW_PATTERN, node);
+    const bereinigt = mjml.replace(PREVIEW_PATTERN_ALL, '');
+
+    if (bereinigt.includes('<mj-head>')) {
+        return bereinigt.replace('<mj-head>', `<mj-head>${node}`);
     }
 
-    if (mjml.includes('<mj-head>')) {
-        return mjml.replace('<mj-head>', `<mj-head>${node}`);
-    }
-
-    return mjml.replace('<mj-body', `<mj-head>${node}</mj-head><mj-body`);
+    return bereinigt.replace('<mj-body', `<mj-head>${node}</mj-head><mj-body`);
 }

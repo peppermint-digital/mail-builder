@@ -37,8 +37,22 @@ pruefe('maskiert spitze Klammern',
 pruefe('Rundlauf schreiben → lesen',
     extractPreheader(setPreheaderIn('<mjml><mj-body></mj-body></mjml>', 'Kurze Anfrage')), 'Kurze Anfrage');
 
+
+// Regression: GrapesJS serialisiert einen leeren Knoten selbstschliessend.
+// Wird der nicht erkannt, entstehen ZWEI mj-preview — und MJML nimmt den
+// letzten, also den leeren. Ergebnis war eine Mail ohne Vorschauzeile.
+pruefe('erkennt selbstschliessenden Knoten',
+    setPreheaderIn('<mjml><mj-head><mj-preview/></mj-head><mj-body></mj-body></mjml>', 'Hallo'),
+    '<mjml><mj-head><mj-preview>Hallo</mj-preview></mj-head><mj-body></mj-body></mjml>');
+pruefe('laesst nie zwei Knoten zurueck',
+    (setPreheaderIn('<mjml><mj-head><mj-preview>Alt</mj-preview><mj-preview/></mj-head><mj-body></mj-body></mjml>', 'Neu').match(/<mj-preview/g) || []).length,
+    1);
+pruefe('liest den gefuellten Knoten trotz leerem Zwilling',
+    extractPreheader('<mjml><mj-head><mj-preview>Gefuellt</mj-preview><mj-preview/></mj-head><mj-body></mj-body></mjml>'),
+    'Gefuellt');
+
 if (fehler > 0) {
     console.error(`\n${fehler} Problem(e) in der Preheader-Logik.`);
     process.exit(1);
 }
-console.log('✓ Preheader-Logik in Ordnung (7 Prüfungen)');
+console.log('✓ Preheader-Logik in Ordnung (10 Prüfungen)');
