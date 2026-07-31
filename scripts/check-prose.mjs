@@ -21,5 +21,20 @@ pruefe('einzelner Umbruch wird zu br', mjmlFromProse('Zeile A\nZeile B').include
 pruefe('kein offenes br im Ergebnis', !/<br\s*>/.test(mjmlFromProse('A\nB\nC')));
 pruefe('doppelter Umbruch bleibt Absatzgrenze', (mjmlFromProse('A\n\nB').match(/<mj-text>/g) || []).length === 2);
 
+// Bug #503 (CRM, 2026-07-31): Ein KI-Vorschlag geriet als JSON-Blob mit
+// <mjml>-Markup in diesen Pfad. MJML wird als XML geparst — das Dokument brach
+// mit „nicht wohlgeformt" ab. Fremde Tags gehoeren maskiert, nicht eingebettet.
+const blob = mjmlFromProse('{"mjml":"<mjml><mj-body><mj-text>Hi</mj-text></mj-body></mjml>"}');
+pruefe('bettet fremde Tags nicht ein', !blob.includes('<mj-body>'));
+pruefe('zeigt fremde Tags als Text', blob.includes('&lt;mjml&gt;'));
+pruefe('erlaubte Auszeichnung ueberlebt daneben', mjmlFromProse('A <b>fett</b> <mjml>x</mjml>').includes('<b>fett</b>'));
+pruefe('maskiert das fremde Tag im selben Absatz', mjmlFromProse('A <b>fett</b> <mjml>x</mjml>').includes('&lt;mjml&gt;'));
+pruefe('kodiert bares kaufmaennisches Und', mjmlFromProse('Meier & Sohn').includes('Meier &amp; Sohn'));
+pruefe('laesst bestehende Entities in Ruhe', mjmlFromProse('5 &amp; 6 &lt; 7').includes('5 &amp; 6 &lt; 7'));
+pruefe('haelt Links zusammen', mjmlFromProse('<a href="https://x.de">hier</a>').includes('<a href="https://x.de">hier</a>'));
+// Der Platzhalter darf keine echten Zahlen im Text treffen.
+pruefe('laesst Zahlen im Text unberuehrt', mjmlFromProse('dauert <b>15</b> bis 20 Minuten').includes('bis 20 Minuten'));
+
+
 if (fehler > 0) { console.error(`\n${fehler} Problem(e).`); process.exit(1); }
-console.log('✓ Prosa-Umwandlung in Ordnung (12 Pruefungen)');
+console.log('✓ Prosa-Umwandlung in Ordnung (20 Pruefungen)');

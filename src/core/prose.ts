@@ -31,7 +31,70 @@ function splitIntoParagraphs(html: string): string[] {
         // `<br>` bricht das Dokument an Ort und Stelle ab — der Baukasten zeigte
         // statt der Vorlage „Opening and ending tag mismatch: br and mj-text"
         // (aufgefallen im CRM, 2026-07-30, bei jedem KI-Vorschlag aus Prosa).
-        .map((part) => part.replace(/\n/g, '<br />'));
+        .map((part) => part.replace(/\n/g, '<br />'))
+        .map(makeXmlSafe);
+}
+
+/**
+ * Auszeichnung, die ein Absatz behalten darf. Alles andere ist im Fließtext
+ * einer Mail entweder sinnlos oder gefährlich.
+ */
+const ERLAUBTE_TAGS = ['b', 'strong', 'i', 'em', 'u', 's', 'a', 'span', 'br'];
+
+const ERLAUBTES_TAG = new RegExp(`^</?(?:${ERLAUBTE_TAGS.join('|')})\\b[^<>]*/?>$`, 'i');
+
+/**
+ * Macht einen Absatz XML-tauglich, ohne die gewollte Auszeichnung zu verlieren.
+ *
+ * `mj-text` **soll** Inline-HTML tragen (fett, kursiv, Links) — blankes Escapen
+ * wäre der falsche Ausweg. Zugleich wird MJML als **XML** geparst: ein einziges
+ * fremdes oder offenes Tag reißt das ganze Dokument mit, und der Baukasten zeigt
+ * statt der Vorlage einen Parserfehler.
+ *
+ * Beides zusammen geht nur über eine Positivliste: Was drauf steht, bleibt
+ * Markup; alles andere wird zu sichtbarem Text. Ein Fließtext kann das Dokument
+ * damit nicht mehr sprengen — im schlimmsten Fall sieht man Zeichen statt
+ * Layout, und das ist reparierbar.
+ *
+ * Anlass: Ein KI-Vorschlag geriet als JSON-Blob mit `<mjml>`-Markup in diesen
+ * Pfad; MJML brach mit „nicht wohlgeformt" ab (CRM-Bug #503, 2026-07-31). Zuvor
+ * schon derselbe Fehler in klein mit offenem `<br>` (2026-07-30) — damals wurde
+ * das Symptom behoben, nicht die Klasse.
+ */
+function makeXmlSafe(paragraph: string): string {
+    // Erst die erlaubten Tags herausnehmen und merken, dann den verbleibenden
+    // Text maskieren. Andersherum würde das Maskieren die Auszeichnung mitnehmen.
+    //
+    // Die Marke ist ein NUL-Byte: In Fließtext kommt es nicht vor. Eine blosse
+    // Nummer („ 3 “) wäre fatal — „15 bis 20 Minuten“ würde beim Zurücksetzen
+    // zerschossen.
+    const platzhalter: string[] = [];
+    const MARKE = '\u0000';
+
+    const mitPlatzhaltern = paragraph.replace(/<[^<>]*>/g, (tag) => {
+        if (! ERLAUBTES_TAG.test(tag)) {
+            // Fremdes Tag: bleibt als Text stehen, wird unten mitmaskiert.
+            return tag;
+        }
+
+        // Void-Elemente selbstschließend, sonst fehlt XML das Gegenstück.
+        const normalisiert = /^<br\b/i.test(tag) ? '<br />' : tag;
+
+        platzhalter.push(normalisiert);
+
+        return `${MARKE}${platzhalter.length - 1}${MARKE}`;
+    });
+
+    const maskiert = mitPlatzhaltern
+        // Bares `&` kodieren, bereits kodierte Entities in Ruhe lassen.
+        .replace(/&(?!#?[a-z0-9]+;)/gi, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+    return maskiert.replace(
+        new RegExp(`${MARKE}(\\d+)${MARKE}`, 'g'),
+        (_treffer, index) => platzhalter[Number(index)],
+    );
 }
 
 export interface ProseToMjmlOptions {
